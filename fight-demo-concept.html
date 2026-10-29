@@ -363,7 +363,7 @@ function draw0(){x.imageSmoothingEnabled=false;x.save();if(shake>0)x.translate((
  if(flash>0){x.fillStyle='#ffffff55';x.fillRect(0,0,W,H)}
  x.fillStyle='#fff';x.font='bold 10px sans-serif';x.textAlign='left';x.fillText('HP',8,13);x.fillStyle='#222';x.fillRect(24,6,104,7);x.fillStyle='#4adc5a';x.fillRect(24,6,104*Math.max(0,P.hp)/100,7);
  x.fillStyle='#331';x.fillRect(24,15,104,4);x.fillStyle=P.meter>=100?(frame%10<5?'#ff9a2e':'#2de2e6'):'#e8322e';x.fillRect(24,15,104*P.meter/100,4);
- x.fillStyle='#fff';x.font='bold 11px sans-serif';x.fillText('橙仔',132,14);x.fillText(Math.ceil(time)+'秒',8,32);x.fillText('分數 '+score,48,32);
+ x.fillStyle='#fff';x.font='bold 11px sans-serif';x.fillText((typeof CHARS!=='undefined'&&CHARS[PCHAR]?CHARS[PCHAR].n:'橙仔'),132,14);x.fillText(Math.ceil(time)+'秒',8,32);x.fillText('分數 '+score,48,32);
  {const f=P.meter>=100&&P.ki==='none';if(f!==zbFull){zbFull=f;zb.classList.toggle('full',f)}}
  if(combo>2&&comboT>0){x.fillStyle='#ffcc4d';x.font='bold 10px sans-serif';x.fillText('x'+combo,8,46)}
  if(freeHint>0&&!over){freeHint--;x.save();x.globalAlpha=Math.min(1,freeHint/30);x.fillStyle='#000b';x.fillRect(W/2-90,4,180,18);x.strokeStyle="#ff9a2e";x.strokeRect(W/2-90,4,180,18);x.fillStyle='#ffcc4d';x.font='bold 12px sans-serif';x.textAlign='center';x.fillText("開場送你一發絕招喵！",W/2,17);x.restore();x.textAlign='left'}
@@ -594,6 +594,30 @@ const _aiCS=enemyAI;enemyAI=function(){const c=E.find(e=>e.t==='c'&&!e.dead);let
 const _resetCS=reset;reset=function(){_resetCS();BLOCKS=[]};
 if(Q.has('costume')){for(let i=0;i<60;i++)step();const L=[mk('a',150,.6),mk('b',220,.6),mk('c',290,.6)];E=L;P.x=60;P.z=.6;L.forEach(e=>{e.face=-1;e.cd=9999;e.tcd=9999});if(Q.get('costume')==='hit'){L[1].rx='funny';L[1].rxK=48;L[1].rxT=30}for(let i=0;i<4;i++){frame++}texts=[];freeze=1;stop=0;shake=0;flash=0;try{FREEH=0}catch(_){}}
 if(Q.has('throw')){for(let i=0;i<60;i++)step();const c=mk('c',260,.6);E=[c];P.x=120;P.z=.6;P.face=1;c.face=-1;c.tcd=0;for(let i=0;i<+(Q.get('throw')||40);i++){step();P.x=120;P.z=.6;c.x=260;c.z=.6;c.cd=999}texts=[];freeze=1;stop=0;shake=0;flash=0;try{FREEH=0}catch(_){}}
+
+// ---- character select: 橙仔 (procedural) / 古惑仔 / 道士 (concept sprite sheets, used as-is)
+var CHARS={orange:{n:'橙仔'},gangster:{n:'古惑仔',f:['assets/gangster-1.png','assets/gangster-2.png','assets/gangster-3.png'],flip:[0,1,0],bh:469},taoist:{n:'道士',f:['assets/taoist-1.png','assets/taoist-2.png','assets/taoist-3.png'],flip:[1,1,0],bh:400}};
+var PCHAR='orange',CFR={},SPT=0;try{const v=localStorage.getItem('ssp_char');if(v&&CHARS[v])PCHAR=v}catch(_){}
+function loadChar(k){const c=CHARS[k];if(!c.f||CFR[k])return;CFR[k]=[];c.f.forEach((u,i)=>{const im=new Image();im.onload=()=>{const H0=120,sc=H0/c.bh,w=Math.max(1,Math.round(im.width*sc)),h=Math.max(1,Math.round(im.height*sc));const cv2=mkCan(w,h),g=cv2.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';if(c.flip[i]){g.translate(w,0);g.scale(-1,1)}g.drawImage(im,0,0,w,h);CFR[k][i]=cv2;CFR[k].ok=(CFR[k].ok||0)+1};im.onerror=()=>console.warn('char frame failed '+u);im.src=u})}
+// common per-character scale: all frames scaled relative to frame 1 height (bh)
+function charFrame(){if(PCHAR==='orange')return null;const F=CFR[PCHAR];if(!F||F.ok<3)return null;
+ if(P.ki!=='none'||SPT>0||(P.at>0&&P.palm))return F[2];if(P.at>0&&(P.st==='kick'||P.st==='akick'))return F[1];return F[0]}
+const _startKiCH=startKi;startKi=function(){const m=P.ki;_startKiCH();if(P.ki!==m)SPT=40};
+const _stepCH=step;step=function(){_stepCH();if(SPT>0)SPT--;if(P.ki==='hold'||P.palm)SPT=Math.max(SPT,10)};
+const BLANK=mkCan(58,62);
+const _dgCH=drawGuy;drawGuy=function(a){const fr=a===P?charFrame():null;if(!fr)return _dgCH(a);
+ const cs=cachedSprite;cachedSprite=function(b,...r){return b===P?BLANK:cs(b,...r)};try{_dgCH(a)}finally{cachedSprite=cs}
+ const s=Math.max(1,Math.round(sOf(a.z)*CH*PXF))/PXF,k=s*60/120,bob=(a.st==='walk'&&!a.h)?((frame>>3)%2):0,sx=bx(a.x,a.z),gy=yOf(a.z);
+ const X0=Math.round((sx+OX)*PXF)/PXF-OX,Y0=Math.round((gy-a.h*s-bob)*PXF)/PXF;x.save();x.imageSmoothingEnabled=false;x.translate(X0,Y0);x.scale(a.face*k,k);
+ if(a.hurt>0&&frame%4<2)x.globalAlpha=.55;x.drawImage(fr,-fr.width/2,-fr.height+4);
+ if(a.fR>0){x.globalCompositeOperation='source-atop';x.globalAlpha=Math.min(.6,a.fR/10);x.fillStyle='#ff2020';x.fillRect(-fr.width/2,-fr.height,fr.width,fr.height)}x.restore();
+ if(a.ki==='hold'){const pp=pawPos(a);drawBall(sx+(pp.x-sx)*CH+a.face*3*pp.s*CH,gy-(gy-pp.y)*CH,7.5*pp.s*CH)}};
+function pickChar(k){PCHAR=k;try{localStorage.setItem('ssp_char',k)}catch(_){}loadChar(k);const o=document.getElementById('csel');if(o)o.style.display='none';reset();freeze=0;last=performance.now()}
+(function(){Object.keys(CHARS).forEach(loadChar);const qc=Q.get('char');if(qc&&CHARS[qc]){PCHAR=qc;return}if(Q.has('auto')||[...Q.keys()].length)return;
+ const o=document.createElement('div');o.id='csel';o.style.cssText='position:fixed;inset:0;z-index:50;background:#0b0c1ee6;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font:bold 18px sans-serif;gap:10px';
+ o.innerHTML='<div style="color:#ffcc4d;font-size:22px">揀隻貓喵！</div><div id="cselr" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center"></div>';document.body.appendChild(o);const row=o.querySelector('#cselr');
+ Object.keys(CHARS).forEach(k=>{const b=document.createElement('div');b.style.cssText='width:110px;padding:8px;border-radius:12px;background:#1d1440;border:2px solid '+(k===PCHAR?'#ffcc4d':'#2de2e6')+';text-align:center;cursor:pointer;touch-action:manipulation';
+  b.innerHTML=(CHARS[k].f?'<img src="'+CHARS[k].f[0]+'" style="height:90px;image-rendering:pixelated;display:block;margin:0 auto">':'<div style="height:90px;font-size:56px;line-height:90px">🐯</div>')+CHARS[k].n;b.addEventListener('click',()=>pickChar(k));row.appendChild(b)});freeze=1})();
 
 requestAnimationFrame(loop);
 </script></body></html>
