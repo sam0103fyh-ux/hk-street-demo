@@ -286,10 +286,10 @@ function catSprite(g,p,pose,ph,expr,blink){const O='#21141a',WH='#fff4e6';const 
  if(p.acc==='band'){R(hx+1,hy+7,24,2,'#d8342e');R(hx-2,hy+8,3,4,'#d8342e')}
  if(p.acc==='shades'&&!['pain','funny','dazed','scared'].includes(expr)){R(hx+5,hy+9,17,4,'#111');R(hx+7,hy+10,2,1,'#5af')}}
 // ---- world
-const WORLD0=20,WORLD1=340;let cam=0,ring=null,shake=0,stop=0,flash=0,texts=[],parts=[],time=30,over=false,score=0,combo=0,comboT=0,frame=0,freeze=0;
+const WORLD0=-60,WORLD1=420;let cam=0,ring=null,shake=0,stop=0,flash=0,texts=[],parts=[],time=30,over=false,score=0,combo=0,comboT=0,frame=0,freeze=0;
 let P,E,balls=[];const zb=document.getElementById('zb');let zbFull=null;
 function mk(t,xp,z){const sp=mkCan(56,60);return{t,x:xp,z,h:0,vh:0,hp:t==='p'?100:40,face:1,st:'idle',at:0,hurt:0,kb:0,cd:0,dead:0,spr:sp,sg:sp.getContext('2d'),id:Math.random()*100|0}}
-function reset(){P=mk('p',160,.55);E=[mk('a',40,.35),mk('b',290,.78),mk('c',340,.52)];E[1].hp=60;time=30;over=false;score=0;combo=0;texts=[];parts=[];freeze=0;balls=[];P.meter=100;P.ki='none';P.kiT=0;FREEH=200}
+function reset(){P=mk('p',160,.55);E=[mk('a',-10,.25),mk('b',300,.9),mk('c',390,.5)];E[1].hp=60;time=30;over=false;score=0;combo=0;texts=[];parts=[];freeze=0;balls=[];P.meter=100;P.ki='none';P.kiT=0;FREEH=200}
 reset();
 function addText(t,xp,y,c){texts.push({t,x:xp,y,c,l:40})}
 const BUB={pain:['痛痛喵！','哎呀喵'],funny:['哎呀喵！！','痛痛喵！'],dazed:['眼花花喵…','眼花花喵…']};
@@ -338,7 +338,7 @@ function step0(){frame++;if(over)return;
  if(ai.S)startKi();if(P.at<=0&&P.hurt<=0&&P.ki!=='charge'){if(ai.P)attack(P,'punch');else if(ai.K)attack(P,'kick')}
  upd(P);if(P.at<=0&&P.hurt<=0)P.st=P.h>0?'jump':(Math.hypot(mx,mz)>.05?'walk':'idle');
  enemyAI();
- [P,...E].forEach(a=>{a.z=Math.max(0,Math.min(1,a.z));a.x=Math.max(WORLD0,Math.min(WORLD1,a.x))});
+ [P,...E].forEach(a=>{a.z=Math.max(0,Math.min(1.05,a.z));a.x=Math.max(WORLD0,Math.min(WORLD1,a.x))});
  if(P.hp<=0){P.dead=1;end()}
  if(E.every(e=>e.dead))end(true);
  kiStep();E.forEach(e=>{if(e.fl>0)e.fl--;if(e.rxT>0)e.rxT--});
@@ -357,7 +357,7 @@ function detailPass(g,t,pose,ph){const p=PALS[t],O='#21141a',L='#fff4e6',R=(a,b,
  R(hx+3,hy+3,1,2,'#c86a7a');R(hx+22,hy+3,1,2,'#c86a7a');
  R(hx-2,hy+16,4,1,L);R(hx-2,hy+18,3,1,L);R(hx+24,hy+16,4,1,L);R(hx+25,hy+18,3,1,L);
  // tabby stripes
- if(t==='p'){R(hx+5,hy+6,1,3,p.stripe);R(hx+20,hy+6,1,3,p.stripe);R(hx+2,hy+9,2,1,p.stripe);R(hx+22,hy+9,2,1,p.stripe);R(hx+11,hy+8,4,1,p.stripe);R(hx+12,hy+9,2,1,p.stripe)}
+ if(t==='p'||t==='c'){R(hx+5,hy+6,1,3,p.stripe);R(hx+20,hy+6,1,3,p.stripe);R(hx+2,hy+9,2,1,p.stripe);R(hx+22,hy+9,2,1,p.stripe);R(hx+11,hy+8,4,1,p.stripe);R(hx+12,hy+9,2,1,p.stripe)}
  // body seams, buttons, folds
  let by=0,lean=0;if(pose==='idle')by=Math.sin(ph*.08)>.3?1:0;if(pose==='walk')by=(ph/5|0)%2;if(pose==='hurt')lean=-3;if(pose==='kick')lean=-2;if(pose==='akick')lean=-1;if(pose==='jump')by=-1;const b=31+by;
  R(25+lean,b+5,1,9,p.shirtD);R(27+lean,b+6,1,1,'#ffe48a');R(27+lean,b+9,1,1,'#ffe48a');R(27+lean,b+12,1,1,'#ffe48a');R(20+lean,b+12,3,1,p.shirtD);R(29+lean,b+13,3,1,p.shirtD);R(18+lean,b+15,15,1,p.pants);
@@ -446,7 +446,7 @@ var TCV=mkCan(58,62),TCG=TCV.getContext('2d');
 function tint(spr,col){TCV.width=spr.width;TCV.height=spr.height;TCG.clearRect(0,0,58,62);TCG.globalCompositeOperation='source-over';TCG.drawImage(spr,0,0);TCG.globalCompositeOperation='source-in';TCG.fillStyle=col;TCG.fillRect(0,0,58,62);TCG.globalCompositeOperation='source-over';const o=mkCan(TCV.width,TCV.height);o.getContext('2d').drawImage(TCV,0,0);return o}
 function react(e,k){e.rx=k;e.rxT=k==='dazed'?48:k==='funny'?40:30;e.rxK=e.rxT;e.fW=8;
  const s=sOf(e.z),cx=(bx(e.x,e.z)+bx(P.x,P.z))/2,cy=yOf(e.z)-30*s;for(let i=0;i<10;i++){const an=Math.random()*7,v=1+Math.random()*2.5;parts.push({x:cx,y:cy,vx:Math.cos(an)*v,vy:Math.sin(an)*v-1,l:12,c:i%2?'#fff':'#ffe14a',s:2})}
- if(BUBCD<=0&&Math.random()<.6){BUBCD=100;const t=e.t==='d'?'吼——！':e.t==='c'?'嗚嗚嗷！':k==='dazed'?'眼花花喵…':k==='funny'?'哎呀喵！':'痛喵！';texts.push({t,x:bx(e.x,e.z)+(e.x<P.x?-58:22),y:yOf(e.z)-70*s*CH,c:'#fff',l:45,b:1})}}
+ if(BUBCD<=0&&Math.random()<.6){BUBCD=100;const t=e.t==='d'?'吼——！':e.t==='c'?'嗚嗚喵！':k==='dazed'?'眼花花喵…':k==='funny'?'哎呀喵！':'痛喵！';texts.push({t,x:bx(e.x,e.z)+(e.x<P.x?-58:22),y:yOf(e.z)-70*s*CH,c:'#fff',l:45,b:1})}}
 function headPos(pose,ph){let by=0,lean=0;if(pose==='idle')by=Math.sin(ph*.08)>.3?1:0;if(pose==='walk')by=(ph/5|0)%2;if(pose==='hurt')lean=-3;if(pose==='kick')lean=-2;if(pose==='akick')lean=-1;if(pose==='jump')by=-1;return[13+lean+(pose==='punch'?2:0),6+by]}
 function faceFX(a,pose){if(a.t==='p'||a.dead||!(a.rxT>0)||pose==='ko')return;const g=a.sg,p=PALS[a.t],O='#21141a',R=(x0,y0,w,h,c)=>{g.fillStyle=c;g.fillRect(x0,y0,w,h)};const [hx,hy]=headPos(pose,frame+a.id),k=a.rx,el=a.rxK-a.rxT;
  R(hx+3,hy+8,20,8,p.fur);R(hx+9,hy+18,9,5,'#fff4e6');
@@ -478,13 +478,13 @@ function drawGuy(a){const TS=a.t==='p'?1:ENM[a.t].sx,KI=Math.max(1,Math.round(sO
  if(a.t!=='p'&&!a.dead){const w=24,yb=top-6;x.fillStyle='#000c';x.fillRect(sx-14,yb-11,28,9);x.fillStyle='#000c';x.fillRect(sx-w/2-1,yb-1,w+2,4);x.fillStyle='#ff3a3a';x.fillRect(sx-w/2,yb,w*Math.max(0,a.hp)/(a.mhp||(a.t==='b'?60:40)),2);x.font='bold 8px sans-serif';x.textAlign='center';x.lineWidth=2;x.strokeStyle='#000';x.strokeText(ENM[a.t].n,sx,yb-3.5);x.fillStyle='#ffd0d0';x.fillText(ENM[a.t].n,sx,yb-3.5);x.textAlign='left'}}
 function enemyAI(){const alive=E.map((e,i)=>({e,i})).filter(o=>!o.e.dead);const att=alive.slice().sort((p,q)=>Math.abs(p.e.x-P.x)-Math.abs(q.e.x-P.x)).slice(0,2).map(o=>o.e);
  let side=-1;alive.forEach(({e,i})=>{if(e.hurt<=0&&e.at<=0){let tx,tz;const isA=att.includes(e);
-  if(isA){const s0=att[0].x<P.x?-1:1,sd=att[0]===e?s0:-s0;tx=P.x+sd*27;tz=P.z+(sd<0?-.04:.04);if(Math.sign(e.x-P.x)!==sd&&Math.abs(e.x-P.x)<30)tz=P.z+.35}else{const an=(i*2.1+frame*.004);tx=P.x+(Math.cos(an)>0?1:-1)*(95+Math.abs(Math.sin(an))*20);tz=.2+.6*((i*.37+frame*.001)%1)}
-  tx=Math.max(60,Math.min(300,tx));tz=Math.max(.12,Math.min(.92,tz));const gx=tx-e.x,gz=tz-e.z;e.face=P.x>e.x?1:-1;
+  if(isA){const s0=att[0].x<P.x?-1:1,sd=att[0]===e?s0:-s0;tx=P.x+sd*27;tz=P.z+(sd<0?-.04:.04);if(Math.sign(e.x-P.x)!==sd&&Math.abs(e.x-P.x)<30)tz=P.z+.35}else{const an=(i*2.1+frame*.004);tx=P.x+(Math.cos(an)>0?1:-1)*(95+Math.abs(Math.sin(an))*20);tz=.08+.9*((i*.37+frame*.001)%1)}
+  tx=Math.max(WORLD0+20,Math.min(WORLD1-20,tx));tz=Math.max(.05,Math.min(1.02,tz));const gx=tx-e.x,gz=tz-e.z;e.face=P.x>e.x?1:-1;
   if(Math.abs(gx)>2.5||Math.abs(gz)>.02){e.x+=Math.sign(gx)*Math.min(.8,Math.abs(gx));e.z+=Math.sign(gz)*Math.min(.005,Math.abs(gz));e.st='walk'}
   else if(isA&&e.cd<=0&&Math.random()<.025)attack(e,'punch');else e.st='idle'}
   if(e.rxT>0&&!e.dead&&e.hurt<=0&&e.at<=0)e.st='idle';upd(e)});
  const A=[P,...E].filter(a=>!a.dead);for(let it=0;it<2;it++)for(let i=0;i<A.length;i++)for(let j=i+1;j<A.length;j++){const a=A[i],b=A[j],dx=b.x-a.x,dz=(b.z-a.z)*55,d=Math.hypot(dx,dz),MIN=(a.t==="p"||b.t==="p")?28:44;if(d<MIN){const push=MIN-d,nx=d?dx/d:1,nz=d?dz/d:0;if(a.t==='p'){b.x+=nx*push;b.z+=nz*push/55}else if(b.t==='p'){a.x-=nx*push;a.z-=nz*push/55}else{a.x-=nx*push/2;a.z-=nz*push/110;b.x+=nx*push/2;b.z+=nz*push/110}}}
- P.x=Math.max(120,Math.min(235,P.x));P.z=Math.max(.2,Math.min(.85,P.z))}
+ P.x=Math.max(WORLD0+10,Math.min(WORLD1-10,P.x));P.z=Math.max(.03,Math.min(1.05,P.z))}
 function step(){step0();if(typeof FREEH!=='undefined'&&FREEH>0)FREEH--;if(BUBCD>0)BUBCD--;if(EDGE>0)EDGE--;E.forEach(e=>{if(e.fW>0)e.fW--});if(P.fR>0)P.fR--;if(P.hp<lastPHP){P.fR=10;EDGE=12}lastPHP=P.hp;
  if(texts.length>2)texts.splice(0,texts.length-2);parts.forEach(p=>{if(p.c==='steam'&&p.l>40)p.l=40})}
 var BGS=null;try{if(typeof bgC!=='undefined')BGS=bgC}catch(_){}
@@ -547,7 +547,6 @@ if(Q.has('facetest')){const ks=['pain','funny','dazed'],o=+Q.get('facetest');for
 
 // ===== 速龍 pack (velociraptor redesign; BOSS 速龍 when DINO_BOSS) =====
 ENM.c.n='速龍';
-PALS.c={fur:'#3fae8f',furL:'#bfe8a8',furD:'#23735e',stripe:'#1d5a4a',crest:'#ff9a2e',eye:'#ffd23f',claw:'#f4ecdc',shirt:'#3fae8f',shirtD:'#23735e',pants:'#23735e'};
 PALS.d={fur:'#4a5a44',furL:'#9a9a74',furD:'#262f22',stripe:'#8a1e1e',crest:'#d8342e',eye:'#ff3a3a',claw:'#fff4e6',scar:'#e8b0a0',shirt:'#4a5a44',shirtD:'#262f22',pants:'#262f22'};
 ENM.d={n:'BOSS 速龍',sx:1.45,sy:1.45};
 function raptorBody(g,p,pose,ph,boss){const O='#21141a',parts=[];const B=(a,b,w,h,c)=>parts.push([a,b,w,h,c]);g.clearRect(0,0,56,60);
@@ -595,16 +594,16 @@ function raptorFace(g,p,pose,expr,blink,a,hd){if(pose==='ko')return;const O='#21
  if(a.t==='c'&&a.rxT>0&&!a.dead){for(let i=0;i<8;i++){const ww=(i+frame)%3?2:1;R(ex+1-(i>>1),ey+4+i,ww,1,'#6ad0ff')}R(ex-3-(frame%5),ey+12+(frame%4),2,2,'#9ae4ff')}}
 function boss(a){return a.t==='d'}
 const _cachedSprite0=cachedSprite;
-cachedSprite=function(a,pose,expr,blink){if(a.t!=='c'&&a.t!=='d')return _cachedSprite0(a,pose,expr,blink);const ph=frame+a.id;
+cachedSprite=function(a,pose,expr,blink){if(a.t!=='d')return _cachedSprite0(a,pose,expr,blink);const ph=frame+a.id;
  const key='R'+a.t+pose+(pose==='walk'?(ph/5|0)%2:'')+(pose==='idle'?(Math.sin(ph*.08)>.3?1:0):'')+'t'+Math.round(Math.sin(ph*.12));let c=SCACHE.get(key),hd;
  if(!c){hd=raptorBody(a.sg,PALS[a.t],pose,ph,boss(a));c=mkCan(56,60);c.getContext('2d').drawImage(a.spr,0,0);c.hd=hd;if(SCACHE.size<600)SCACHE.set(key,c)}
  a.sg.clearRect(0,0,56,60);a.sg.drawImage(c,0,0);raptorFace(a.sg,PALS[a.t],pose,expr,blink,a,c.hd||[33,12]);return lightOutline(a.spr)};
-const _react0=react;react=function(e,k){const n=texts.length;_react0(e,k);if(e.t==='c'||e.t==='d'){for(let i=n;i<texts.length;i++){if(texts[i].b)texts[i].t=e.t==='d'?'吼——！':'嗚嗚嗷！'}}};
+const _react0=react;react=function(e,k){const n=texts.length;_react0(e,k);if(e.t==='d'){for(let i=n;i<texts.length;i++){if(texts[i].b)texts[i].t=e.t==='d'?'吼——！':'嗚嗚嗷！'}}};
 // HP bars use per-enemy max
 // ---- BOSS 速龍 (hd2d only): spawns after 2 grunts KO'd or at 18s left; pounce + tail sweep with flash warning
 var BOSS=null,BOSSIN=0;const BOSSHP=160;
 const _reset0=reset;reset=function(){_reset0();BOSS=null;BOSSIN=0};
-function spawnBoss(){BOSS=mk('d',335,.5);BOSS.hp=BOSSHP;BOSS.mhp=BOSSHP;BOSS.sp=null;BOSS.spT=0;BOSS.spCD=150;E.push(BOSS);BOSSIN=90;flash=3;shake=4;texts.push({t:'BOSS 速龍 殺到！',x:240,y:120,c:'#ff3a3a',l:60})}
+function spawnBoss(){BOSS=mk('d',400,.5);BOSS.hp=BOSSHP;BOSS.mhp=BOSSHP;BOSS.sp=null;BOSS.spT=0;BOSS.spCD=150;E.push(BOSS);BOSSIN=90;flash=3;shake=4;texts.push({t:'BOSS 速龍 殺到！',x:240,y:120,c:'#ff3a3a',l:60})}
 const _hit0=hit;hit=function(a,b,heavy){_hit0(a,b,heavy);if(b.t==='d'){b.hurt=Math.min(b.hurt,b.sp?0:6);b.kb*=.35}};
 function bossHitP(dmg){if(P.dead||P.hurt>0)return;const b=BOSS;_hit0(b,P,true);P.hp-=dmg-18;P.kb=6*b.face;P.hurt=16}
 const _enemyAI0=enemyAI;enemyAI=function(){
