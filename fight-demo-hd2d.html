@@ -440,7 +440,7 @@ window.onerror=(m)=>{document.title='ERR '+m};
 addEventListener('resize',layout);addEventListener('orientationchange',()=>setTimeout(layout,60));if(window.visualViewport)visualViewport.addEventListener('resize',layout);layout();
 // ===== readability pack (who-is-who, faces, spacing, wide layout) =====
 var ENM={a:{n:'偉哥',sx:1,sy:1},b:{n:'清兵',sx:1,sy:1},c:{n:'速龍',sx:.8,sy:.8}};var PXF=1.4;
-PALS.a.fur='#9a9aa8';PALS.a.shirt='#d8342e';PALS.b.fur='#f6f2ea';PALS.b.shirt='#1a1a20';PALS.c.fur='#8a5a34';PALS.c.stripe='#4a2a14';PALS.c.shirt='#3aa83a';
+PALS.a.fur='#9a9aa8';PALS.b.fur='#f6f2ea';PALS.b.shirt='#1a1a20';PALS.c.fur='#8a5a34';PALS.c.stripe='#4a2a14';PALS.c.shirt='#3aa83a';
 
 var TCV=mkCan(58,62),TCG=TCV.getContext('2d');
 function tint(spr,col){TCV.width=spr.width;TCV.height=spr.height;TCG.clearRect(0,0,58,62);TCG.globalCompositeOperation='source-over';TCG.drawImage(spr,0,0);TCG.globalCompositeOperation='source-in';TCG.fillStyle=col;TCG.fillRect(0,0,58,62);TCG.globalCompositeOperation='source-over';const o=mkCan(TCV.width,TCV.height);o.getContext('2d').drawImage(TCV,0,0);return o}
@@ -638,6 +638,44 @@ const _aiOB=enemyAI;enemyAI=function(){
    const n=SPQ.shift();if(n==='boss')spawnBoss();else{n.x=WORLD1;n.z=P.z<.5?.7:.35;n.st='walk';E.push(n);texts.push({t:ENM[n.t].n+' 嚟緊！',x:400,y:130,c:'#ffcc4d',l:40})}SPGAP=0}}
  _aiOB()};
 reset();
+
+// ---- costume pack: 偉哥 monk robe + prayer wheel, 清兵 勇 號衣, 速龍 (cat) toy blocks + ranged throw
+PALS.a.acc='';PALS.a.shirt='#7a1e2e';PALS.a.shirtD='#561420';PALS.a.pants='#5a1a24';
+PALS.b.shirt='#24346e';PALS.b.shirtL='#3a4e96';PALS.b.shirtD='#18224a';
+SCACHE.clear();
+var BLOCKS=[];const BLKC=['#e8322e','#ffcc4d','#3a8fe8','#4adc5a','#ff8a2e'];
+function poseOf(a){let pose=a.dead?'ko':a.st==='win'?'idle':a.st;if(!['idle','walk','punch','kick','akick','jump','hurt','ko'].includes(pose))pose='idle';return pose}
+function pawXY(pose,ph){let px=35,py=44;if(pose==='jump'||pose==='akick'){px=36;py=27}else if(pose==='punch'){px=49;py=36}else if(pose==='kick'){px=46;py=43}else if(pose==='walk')py=43+(ph/5|0)%2;return[px,py]}
+function costume(a,c,pose){if(pose==='ko'||a.t==='p'||a.t==='d')return;const g=c.getContext('2d'),O='#21141a',R=(x0,y0,w,h,col)=>{g.fillStyle=col;g.fillRect(x0+1,y0+1,w,h)};const ph=frame+a.id;const [hx,hy]=headPos(pose,ph);const lean=hx-13-(pose==='punch'?2:0),by=hy-6,b=31+by;const [px,py]=pawXY(pose,ph);
+ if(a.t==='a'){// saffron sash over left shoulder, bare right shoulder
+  for(let i=0;i<14;i++)R(19+lean+i,b+1+i,3,1,'#f0a020');R(29+lean,b+1,4,3,PALS.a.fur);R(18+lean,b+14,15,1,'#f0a020');
+  // prayer wheel
+  const sw=(pose==='punch'||pose==='kick'||pose==='akick'),wx=px+(sw?3:-1),wy=py-(sw?10:12);R(px,py-6,1,7,'#6a4a2a');
+  R(wx-3,wy-1,7,8,O);R(wx-2,wy,5,6,'#e0b030');const st=(frame>>1)%3;R(wx-2+st,wy,1,6,'#a07010');R(wx-2,wy+2,5,1,'#fff0a0');R(wx-1,wy-2,3,1,'#e0b030');
+  const an=frame*(sw?.6:.3),cx=wx+Math.round(Math.cos(an)*5),cy=wy+3+Math.round(Math.sin(an)*2);R(wx+3,wy+3,1,1,'#888');R(cx,cy,2,2,O);R(cx,cy,1,1,'#ccc')}
+ if(a.t==='b'){// 號衣 chest patch (char drawn on main canvas)
+  const cx=21+lean,cy=b+3;R(cx,cy-1,9,11,'#c8282a');R(cx+1,cy-2,7,13,'#c8282a');R(cx+1,cy,7,9,'#fff8ec');R(cx+2,cy-1,5,11,'#fff8ec')}
+ if(a.t==='c'){// toy block in paw (or raised when winding up a throw)
+  if(a.thr>0){const bx0=hx+9,by0=hy-9,f=a.thr%6<3;R(bx0-1,by0-1,7,7,O);R(bx0,by0,5,5,f?'#fff':BLKC[a.bc||0]);R(bx0,by0,5,1,'#ffffff80')}
+  else{R(px-3,py-4,6,6,O);R(px-2,py-3,4,4,BLKC[(a.bc||0)]);R(px-2,py-3,4,1,'#fff6')}}}
+const _csOB=cachedSprite;cachedSprite=function(a,pose,expr,blink){const c=_csOB(a,pose,expr,blink);costume(a,c,pose);return c};
+const _dgOB=drawGuy;drawGuy=function(a){if(a===P)drawBlocks();_dgOB(a);
+ if(a.t==='b'&&!a.dead){const pose=poseOf(a);const TS=ENM.b.sx,KI=Math.max(1,Math.round(sOf(a.z)*CH*TS*PXF)),s=KI/PXF/TS,M=ENM.b;const [hx,hy]=headPos(pose,frame+a.id),lean=hx-13-(pose==='punch'?2:0),b=31+hy-6;
+  const cx=25.5+lean+1,cy=b+3+4.5+1,X0=Math.round((bx(a.x,a.z)+OX)*PXF)/PXF-OX,Y0=Math.round((yOf(a.z)-a.h*s)*PXF)/PXF;
+  const X=X0+a.face*s*M.sx*(cx-29),Y=Y0+s*M.sy*(cy-59);x.save();x.font='bold '+Math.max(6,Math.round(7.5*s*M.sy))+'px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#b01818';x.fillText('勇',X,Y+.5);x.restore()}};
+function drawBlocks(){BLOCKS.forEach(k=>{const s=sOf(k.z),X=bx(k.x,k.z),Y=yOf(k.z)-k.y*s;x.fillStyle='#000a';x.fillRect(X-3*s,yOf(k.z)-1,6*s,2);x.save();x.translate(Math.round(X),Math.round(Y));x.rotate(Math.round(k.r/ (Math.PI/4))*Math.PI/4);const w=Math.round(10*s);x.fillStyle='#21141a';x.fillRect(-w/2-1,-w/2-1,w+2,w+2);x.fillStyle=BLKC[k.c];x.fillRect(-w/2,-w/2,w,w);x.fillStyle='#fff8';x.fillRect(-w/2,-w/2,w,1);x.fillRect(-1,-1,2,2);x.restore()})}
+function stepBlocks(){BLOCKS=BLOCKS.filter(k=>{k.x+=k.vx;k.r+=.3;k.l--;if(!P.dead&&P.hurt<=0&&Math.abs(k.x-P.x)<10&&Math.abs(k.z-P.z)<.07&&P.h<10){P.hp-=10;P.hurt=10;P.kb=3*Math.sign(k.vx);stop=60;shake=3;snd(false);const s=sOf(P.z);addText('啪！',bx(P.x,P.z),yOf(P.z)-46*s,'#ffcc4d');for(let i=0;i<8;i++)parts.push({x:bx(k.x,k.z),y:yOf(k.z)-k.y*s,vx:(Math.random()-.5)*4,vy:-Math.random()*3,l:16,c:BLKC[(k.c+i)%5],s:2});return false}
+  return k.l>0&&k.x>WORLD0-20&&k.x<WORLD1+20})}
+const _aiCS=enemyAI;enemyAI=function(){const c=E.find(e=>e.t==='c'&&!e.dead);let hide=false;
+ if(c){if(c.tcd===undefined)c.tcd=40;if(c.tcd>0)c.tcd--;const dx=P.x-c.x,adx=Math.abs(dx);
+  if(!(c.thr>0)&&c.tcd<=0&&c.hurt<=0&&c.at<=0&&!(c.rxT>0)&&adx>45&&adx<170&&!over){c.thr=26;c.face=dx>0?1:-1;c.bc=(Math.random()*5)|0;texts.push({t:'！',x:bx(c.x,c.z),y:yOf(c.z)-80*sOf(c.z),c:'#ffcc4d',l:26})}
+  if(c.thr>0){if(c.hurt>0){c.thr=0;c.tcd=60}else{hide=true;c.st='idle';c.thr--;c.fW=c.thr%8<3?3:0;if(c.thr===0){BLOCKS.push({x:c.x+c.face*14,z:c.z,y:34,vx:c.face*3.2,r:0,l:120,c:c.bc});whoosh(700);c.tcd=150+(Math.random()*60|0);c.bc=(Math.random()*5)|0}}}}
+ if(!E.some(e=>e.t==='c'&&!e.dead))BLOCKS=E.some(e=>e.t==='c')?[]:BLOCKS;
+ if(hide)c.dead=1;_aiCS();if(hide){c.dead=0;if(c.cd>0)c.cd--}
+ if(!over)stepBlocks()};
+const _resetCS=reset;reset=function(){_resetCS();BLOCKS=[]};
+if(Q.has('costume')){for(let i=0;i<60;i++)step();const L=[mk('a',150,.6),mk('b',220,.6),mk('c',290,.6)];E=L;P.x=60;P.z=.6;L.forEach(e=>{e.face=-1;e.cd=9999;e.tcd=9999});if(Q.get('costume')==='hit'){L[1].rx='funny';L[1].rxK=48;L[1].rxT=30}for(let i=0;i<4;i++){frame++}texts=[];freeze=1;stop=0;shake=0;flash=0;try{FREEH=0}catch(_){}}
+if(Q.has('throw')){for(let i=0;i<60;i++)step();const c=mk('c',260,.6);E=[c];P.x=120;P.z=.6;P.face=1;c.face=-1;c.tcd=0;for(let i=0;i<+(Q.get('throw')||40);i++){step();P.x=120;P.z=.6;c.x=260;c.z=.6;c.cd=999}texts=[];freeze=1;stop=0;shake=0;flash=0;try{FREEH=0}catch(_){}}
 
 requestAnimationFrame(loop);
 </script></body></html>
