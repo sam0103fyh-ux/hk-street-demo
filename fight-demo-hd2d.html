@@ -607,7 +607,7 @@ function spawnBoss(){BOSS=mk('d',400,.5);BOSS.hp=BOSSHP;BOSS.mhp=BOSSHP;BOSS.sp=
 const _hit0=hit;hit=function(a,b,heavy){_hit0(a,b,heavy);if(b.t==='d'){b.hurt=Math.min(b.hurt,b.sp?0:6);b.kb*=.35}};
 function bossHitP(dmg){if(P.dead||P.hurt>0)return;const b=BOSS;_hit0(b,P,true);P.hp-=dmg-18;P.kb=6*b.face;P.hurt=16}
 const _enemyAI0=enemyAI;enemyAI=function(){
- if(!BOSS&&!over&&(E.filter(e=>e.dead).length>=2||time<=18))spawnBoss();
+ 
  const b=BOSS;let hide=false;
  if(b&&!b.dead){if(b.spCD>0)b.spCD--;
   const alive=E.filter(e=>!e.dead),att=alive.slice().sort((p,q)=>Math.abs(p.x-P.x)-Math.abs(q.x-P.x)).slice(0,2),dx=P.x-b.x,adx=Math.abs(dx);
@@ -627,6 +627,17 @@ const _drawGuy0=drawGuy;drawGuy=function(a){if(a.t==='d'&&a.sp==='warn'&&!a.dead
 const _draw1=draw;draw=function(){_draw1();if(BOSS&&!over){const b=BOSS,w=220,x0=OX+(480-w)/2,y0=248;x.fillStyle='#000c';x.fillRect(x0-4,y0-12,w+8,22);x.fillStyle='#3a0a0a';x.fillRect(x0,y0,w,6);x.fillStyle=(BOSSIN>0&&frame%8<4)?'#fff':'#ff2a3a';x.fillRect(x0,y0,w*Math.max(0,b.hp)/BOSSHP,6);x.font='bold 10px sans-serif';x.textAlign='left';x.lineWidth=3;x.strokeStyle='#000';x.strokeText('BOSS 速龍',x0,y0-3);x.fillStyle='#ffd23f';x.fillText('BOSS 速龍',x0,y0-3);
  if(b.sp==='warn'&&frame%8<4){x.fillStyle='#ff202030';x.fillRect(0,0,CW,H)}}};
 if(Q.has('boss')){for(let i=0;i<200;i++)step();E[0].hp=0;E[0].dead=1;E[1].hp=0;E[1].dead=1;for(let i=0;i<+(Q.get('boss')||120);i++){step();P.hp=100}console.log('BOSSTEST boss='+(BOSS?BOSS.hp+' sp='+BOSS.sp:'none')+' E='+E.length);freeze=1;flash=0;shake=0;stop=0}
+
+// ---- one-at-a-time spawning: 偉哥 -> 清兵 -> 速龍 (-> BOSS 速龍 in hd2d); next walks in from the right ~0.7s after KO
+var SPQ=[],SPGAP=0;const HASBOSS=typeof spawnBoss==='function';
+const _resetOB=reset;reset=function(){_resetOB();SPQ=E.slice(1);E=[E[0]];E[0].x=WORLD1;SPGAP=0;if(HASBOSS)SPQ.push('boss')};
+const _endOB=end;end=function(win){if(win&&!P.dead&&(SPQ.length||SPGAP>0)&&time>0)return;_endOB(win)};
+const _aiOB=enemyAI;enemyAI=function(){
+ if(!over&&E.every(e=>e.dead)&&SPQ.length){if(SPGAP<=0)SPGAP=42;else if(--SPGAP<=0){
+   if(HASBOSS&&time<=12)SPQ=SPQ.filter(q=>q==='boss');
+   const n=SPQ.shift();if(n==='boss')spawnBoss();else{n.x=WORLD1;n.z=P.z<.5?.7:.35;n.st='walk';E.push(n);texts.push({t:ENM[n.t].n+' 嚟緊！',x:400,y:130,c:'#ffcc4d',l:40})}SPGAP=0}}
+ _aiOB()};
+reset();
 
 requestAnimationFrame(loop);
 </script></body></html>

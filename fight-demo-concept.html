@@ -546,5 +546,16 @@ cachedSprite=function(a,pose,expr,blink){if(a.t!=='d')return _cachedSprite0(a,po
 const _react0=react;react=function(e,k){const n=texts.length;_react0(e,k);if(e.t==='d'){for(let i=n;i<texts.length;i++){if(texts[i].b)texts[i].t=e.t==='d'?'吼——！':'嗚嗚嗷！'}}};
 // HP bars use per-enemy max
 
+// ---- one-at-a-time spawning: 偉哥 -> 清兵 -> 速龍 (-> BOSS 速龍 in hd2d); next walks in from the right ~0.7s after KO
+var SPQ=[],SPGAP=0;const HASBOSS=typeof spawnBoss==='function';
+const _resetOB=reset;reset=function(){_resetOB();SPQ=E.slice(1);E=[E[0]];E[0].x=WORLD1;SPGAP=0;if(HASBOSS)SPQ.push('boss')};
+const _endOB=end;end=function(win){if(win&&!P.dead&&(SPQ.length||SPGAP>0)&&time>0)return;_endOB(win)};
+const _aiOB=enemyAI;enemyAI=function(){
+ if(!over&&E.every(e=>e.dead)&&SPQ.length){if(SPGAP<=0)SPGAP=42;else if(--SPGAP<=0){
+   if(HASBOSS&&time<=12)SPQ=SPQ.filter(q=>q==='boss');
+   const n=SPQ.shift();if(n==='boss')spawnBoss();else{n.x=WORLD1;n.z=P.z<.5?.7:.35;n.st='walk';E.push(n);texts.push({t:ENM[n.t].n+' 嚟緊！',x:400,y:130,c:'#ffcc4d',l:40})}SPGAP=0}}
+ _aiOB()};
+reset();
+
 requestAnimationFrame(loop);
 </script></body></html>
