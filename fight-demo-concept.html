@@ -384,7 +384,7 @@ if(Q.has('jstest')){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r
  ev('pointerdown',cx,cy);ev('pointermove',cx+30,cy+30);for(let i=0;i<60;i++)step();console.log('JSTEST dx='+(P.x-x0).toFixed(1)+' dz='+(P.z-z0).toFixed(3)+' joy='+JOY.x.toFixed(2)+','+JOY.y.toFixed(2)+' face='+P.face+' st='+P.st);if(!Q.has('hold'))ev('pointerup',cx,cy)}
 document.getElementById('fxb').addEventListener('click',toggleFx);if(LOFX){LOFX=false;toggleFx()}if(Q.has('lofx')&&!LOFX)toggleFx();
 // ===== readability pack (who-is-who, faces, spacing, wide layout) =====
-var ENM={a:{n:'灰毛',sx:1,sy:1},b:{n:'白爪',sx:1,sy:1},c:{n:'啡記',sx:.8,sy:.8}};var PXF=1.4;
+var ENM={a:{n:'偉哥',sx:1,sy:1},b:{n:'清兵',sx:1,sy:1},c:{n:'速鹿',sx:.8,sy:.8}};var PXF=1.4;
 PALS.a.fur='#9a9aa8';PALS.a.shirt='#d8342e';PALS.b.fur='#f6f2ea';PALS.b.shirt='#1a1a20';PALS.c.fur='#8a5a34';PALS.c.stripe='#4a2a14';PALS.c.shirt='#3aa83a';
 
 var TCV=mkCan(58,62),TCG=TCV.getContext('2d');
