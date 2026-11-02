@@ -607,8 +607,9 @@ const _stepCH=step;step=function(){_stepCH();if(SPT>0)SPT--;if(P.ki==='hold'||P.
 const BLANK=mkCan(58,62);
 const _dgCH=drawGuy;drawGuy=function(a){const fr=a===P?charFrame():null;if(!fr)return _dgCH(a);
  const cs=cachedSprite;cachedSprite=function(b,...r){return b===P?BLANK:cs(b,...r)};try{_dgCH(a)}finally{cachedSprite=cs}
- const s=Math.max(1,Math.round(sOf(a.z)*CH*PXF))/PXF,k=s*60/120,bob=(a.st==='walk'&&!a.h)?((frame>>3)%2):0,sx=bx(a.x,a.z),gy=yOf(a.z);
- const X0=Math.round((sx+OX)*PXF)/PXF-OX,Y0=Math.round((gy-a.h*s-bob)*PXF)/PXF;x.save();x.imageSmoothingEnabled=false;x.translate(X0,Y0);x.scale(a.face*k,k);
+ const s=Math.max(1,Math.round(sOf(a.z)*CH*PXF))/PXF,k=s*60/120,wk=(a.st==='walk'&&!a.h),ph=frame*.28,bob=wk?Math.abs(Math.sin(ph))*3:0,br=Math.sin(frame*.09),atk=a.at>0,sx=bx(a.x,a.z),gy=yOf(a.z);
+ const X0=Math.round((sx+OX)*PXF)/PXF-OX,Y0=Math.round((gy-a.h*s-bob)*PXF)/PXF;x.save();x.imageSmoothingEnabled=false;const rot=atk?.09:a.hurt>0?-.1:wk?Math.sin(ph)*.07:br*.012,lx=atk?a.face*3*s:0,sy=wk?1-Math.abs(Math.sin(ph))*.04:atk?.97:1+br*.03,sq=wk?1+Math.abs(Math.sin(ph))*.03:atk?1.04:1-br*.015;
+ x.translate(X0+lx,Y0);x.rotate(rot*a.face);x.scale(a.face*k*sq,k*sy);
  if(a.hurt>0&&frame%4<2)x.globalAlpha=.55;x.drawImage(fr,-fr.width/2,-fr.height+4);
  if(a.fR>0){x.globalCompositeOperation='source-atop';x.globalAlpha=Math.min(.6,a.fR/10);x.fillStyle='#ff2020';x.fillRect(-fr.width/2,-fr.height,fr.width,fr.height)}x.restore();
  if(a.ki==='hold'){const pp=pawPos(a);drawBall(sx+(pp.x-sx)*CH+a.face*3*pp.s*CH,gy-(gy-pp.y)*CH,7.5*pp.s*CH)}};
