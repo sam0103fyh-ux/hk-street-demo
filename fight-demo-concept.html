@@ -607,8 +607,8 @@ const _stepCH=step;step=function(){_stepCH();if(SPT>0)SPT--;if(P.ki==='hold'||P.
 const BLANK=mkCan(58,62);
 const _dgCH=drawGuy;drawGuy=function(a){const fr=a===P?charFrame():null;if(!fr)return _dgCH(a);
  const cs=cachedSprite;cachedSprite=function(b,...r){return b===P?BLANK:cs(b,...r)};try{_dgCH(a)}finally{cachedSprite=cs}
- const s=Math.max(1,Math.round(sOf(a.z)*CH*PXF))/PXF,k=s*60/120,wk=(a.st==='walk'&&!a.h),ph=frame*.28,bob=wk?Math.abs(Math.sin(ph))*3:0,br=Math.sin(frame*.09),atk=a.at>0,sx=bx(a.x,a.z),gy=yOf(a.z);
- const X0=Math.round((sx+OX)*PXF)/PXF-OX,Y0=Math.round((gy-a.h*s-bob)*PXF)/PXF;x.save();x.imageSmoothingEnabled=false;const rot=atk?.09:a.hurt>0?-.1:wk?Math.sin(ph)*.07:br*.012,lx=atk?a.face*3*s:0,sy=wk?1-Math.abs(Math.sin(ph))*.04:atk?.97:1+br*.03,sq=wk?1+Math.abs(Math.sin(ph))*.03:atk?1.04:1-br*.015;
+ const s=Math.max(1,Math.round(sOf(a.z)*CH*PXF))/PXF,k=s*60/120,wk=(a.st==='walk'&&!a.h),ph=frame*.28,bob=(wk&&typeof SPRA==='undefined')?Math.abs(Math.sin(ph))*3:0,br=Math.sin(frame*.09),atk=a.at>0,sx=bx(a.x,a.z),gy=yOf(a.z);
+ const X0=Math.round((sx+OX)*PXF)/PXF-OX,Y0=Math.round((gy-a.h*s-bob)*PXF)/PXF;x.save();x.imageSmoothingEnabled=false;const SA=typeof SPRA!=='undefined',rot=SA?0:atk?.09:a.hurt>0?-.1:wk?Math.sin(ph)*.07:br*.012,lx=SA?0:atk?a.face*3*s:0,sy=SA?(a.st==='idle'&&PCHAR==='taoist'?1+br*.012:1):wk?1-Math.abs(Math.sin(ph))*.04:atk?.97:1+br*.03,sq=SA?1:wk?1+Math.abs(Math.sin(ph))*.03:atk?1.04:1-br*.015;
  x.translate(X0+lx,Y0);x.rotate(rot*a.face);x.scale(a.face*k*sq,k*sy);
  if(a.hurt>0&&frame%4<2)x.globalAlpha=.55;x.drawImage(fr,-fr.width/2,-fr.height+4);
  if(a.fR>0){x.globalCompositeOperation='source-atop';x.globalAlpha=Math.min(.6,a.fR/10);x.fillStyle='#ff2020';x.fillRect(-fr.width/2,-fr.height,fr.width,fr.height)}x.restore();
@@ -673,6 +673,15 @@ const _csHERO=cachedSprite;cachedSprite=function(a,pose,expr,blink){if(a!==P||ty
  if(!c){heroSprite(a.sg,PCHAR,pose,ph,expr,blink);c=mkCan(56,60);c.getContext('2d').drawImage(a.spr,0,0);if(SCACHE.size<600)SCACHE.set(key,c)}
  a.sg.clearRect(0,0,56,60);a.sg.drawImage(c,0,0);return lightOutline(a.spr)};
 charFrame=function(){return null};// retire the static-picture path (assets kept for the select screen)
+
+// ---- 古惑仔 / 道士: generated sprite-animation frames (assets/anim), same look as the concept art; replaces the procedural rig for them
+var SPRA=1;HPAL={};var AFR={},ADEF={gangster:{idle:['idle0','idle1'],walk:['walk0','walk1','walk2','walk3'],kick:['kick'],sp:['sp'],punch:['sp'],hurt:['hurt'],ko:['ko'],jump:['idle0']},
+ taoist:{idle:['idle0'],walk:['walk0','walk1','walk2','walk3'],kick:['kick'],sp:['sp'],punch:['sp'],hurt:['hurt'],ko:['ko'],jump:['idle0']}};
+function loadAnim(k){if(AFR[k]||!ADEF[k])return;AFR[k]={};const L=new Set(Object.values(ADEF[k]).flat());L.forEach(n=>{const im=new Image();im.onload=()=>{const c=mkCan(im.width,im.height);c.getContext('2d').drawImage(im,0,0);AFR[k][n]=c};im.onerror=()=>console.warn('anim frame failed '+n);im.src='assets/anim/'+k+'-'+n+'.png'})}
+Object.keys(ADEF).forEach(loadAnim);
+charFrame=function(){if(!ADEF[PCHAR])return null;const D=ADEF[PCHAR],F=AFR[PCHAR];let st='idle',sp=6;
+ if(P.dead)st='ko';else if(P.hurt>0)st='hurt';else if(P.ki!=='none'||SPT>0||(P.at>0&&P.palm))st='sp';else if(P.at>0&&(P.st==='kick'||P.st==='akick'))st='kick';else if(P.at>0&&P.st==='punch')st='punch';else if(P.h>0)st='jump';else if(P.st==='walk'){st='walk';sp=8}else sp=30;
+ const L=D[st],fr=F&&F[L[((frame/sp)|0)%L.length]];return fr||null};
 
 requestAnimationFrame(loop);
 </script></body></html>
