@@ -620,5 +620,59 @@ function pickChar(k){PCHAR=k;try{localStorage.setItem('ssp_char',k)}catch(_){}lo
  Object.keys(CHARS).forEach(k=>{const b=document.createElement('div');b.style.cssText='width:110px;padding:8px;border-radius:12px;background:#1d1440;border:2px solid '+(k===PCHAR?'#ffcc4d':'#2de2e6')+';text-align:center;cursor:pointer;touch-action:manipulation';
   b.innerHTML=(CHARS[k].f?'<img src="'+CHARS[k].f[0]+'" style="height:90px;image-rendering:pixelated;display:block;margin:0 auto">':'<div style="height:90px;font-size:56px;line-height:90px">🐯</div>')+CHARS[k].n;b.addEventListener('click',()=>pickChar(k));row.appendChild(b)});freeze=1})();
 
+// ---- 古惑仔 / 道士: procedural frame-by-frame rig (same 56x60 白描 pixel style as 橙仔). 6-frame walk, idle breathe, punch, kick, air kick, jump, hurt, ko, 絕招 pose
+var HPAL={gangster:{fur:'#f28c28',furL:'#ffb35c',furD:'#c9661a',stripe:'#a84f12',shirt:'#e0406a',shirtL:'#ff7a9a',shirtD:'#a82a4c',pants:'#1c1a22',pantsL:'#34303e',shoe:'#d8282e',hair:'#1a1420',hairL:'#3a2c44'},
+ taoist:{fur:'#f28c28',furL:'#ffb35c',furD:'#c9661a',stripe:'#a84f12',shirt:'#f0b428',shirtL:'#ffd860',shirtD:'#c08410',pants:'#2a2a32',pantsL:'#44444e',shoe:'#1a1a1e',hair:'#16161c',hairL:'#33333d'}};
+function heroSprite(g,k,pose,ph,expr,blink){const p=HPAL[k],O='#21141a',WH='#fff4e6',R=(a,b,w,h,c)=>{g.fillStyle=c;g.fillRect(a,b,w,h)};
+ if(pose==='ko'){catSprite(g,p,'ko',ph,expr,blink);if(k==='gangster'){R(44,38,10,4,p.hair);R(50,40,4,12,p.hair)}else{R(40,36,12,5,p.hair);R(44,35,4,1,'#ffcc4d')}return}
+ const base=pose==='sp'?'idle':pose;catSprite(g,p,base,ph,expr,blink);
+ // repaint legs+arms+body with richer frames
+ const T=pose==='walk'?((ph/4|0)%6):0,tt=T/6*Math.PI*2;
+ let by=0,lean=0;if(pose==='idle'||pose==='sp')by=Math.sin(ph*.08)>.3?1:0;if(pose==='walk')by=(T%3===0)?1:0;if(pose==='hurt')lean=-3;if(pose==='kick')lean=-2;if(pose==='akick')lean=-1;if(pose==='jump')by=-1;
+ const b=31+by,hx=13+lean+(pose==='punch'?2:0),hy=6+by;
+ // wipe old body/legs/arm area (keep head + tail)
+ g.save();g.globalCompositeOperation='destination-out';g.fillRect(8,b-1,48,60-(b-1));g.restore();
+ const tailSw=Math.round(Math.sin(ph*.12)*2);for(let q=0;q<5;q++){const tx=17-q*3,ty=44-q*3+(q>2?tailSw:0);R(tx-1,ty-1,5,5,O)}for(let q=0;q<5;q++){const tx=17-q*3,ty=44-q*3+(q>2?tailSw:0);R(tx,ty,3,3,q%2?p.stripe:p.fur)}
+ const L=(x0,y0,w,h)=>{R(x0-1,y0-1,w+2,h+2,O);R(x0,y0,w,h,p.pants);R(x0,y0,1,h,p.pantsL)},F=(x0,y0)=>{R(x0-1,y0-1,7,4,O);R(x0,y0,5,2,p.shoe);if(k==='gangster')R(x0,y0+1,5,1,'#fff4e6');else R(x0+1,y0-1,3,1,'#fff4e6')};
+ const leg=(x0,dx,lift)=>{const h=7-lift;L(x0+dx,46,4,h);F(x0+dx-1+(lift?1:0),53-lift)};
+ if(pose==='walk'){const ax=Math.round(Math.cos(tt)*3),al=Math.max(0,Math.round(Math.sin(tt)*2.4)),bx2=-ax,bl=Math.max(0,Math.round(-Math.sin(tt)*2.4));
+  leg(27,bx2,bl);leg(20,ax,al)}
+ else if(pose==='kick'){leg(20,0,0);R(28,41,17,6,O);R(29,42,15,4,p.pants);R(29,42,15,1,p.pantsL);R(44,39,6,8,O);R(45,40,4,6,p.shoe);R(45,45,4,1,'#fff4e6')}
+ else if(pose==='akick'){L(19,42,5,5);L(28,44,6,4);L(32,47,6,4);R(38,48,7,6,O);R(39,49,5,4,p.shoe)}
+ else if(pose==='jump'){L(19,43,5,5);F(18,48);L(27,43,5,5);F(26,48)}
+ else if(pose==='hurt'){leg(19,-1,0);leg(27,1,1)}
+ else if(pose==='sp'){leg(18,-1,0);leg(29,1,0)}
+ else{leg(20,0,0);leg(27,0,0)}
+ // body
+ if(k==='taoist'){// long robe: skirt hem sways while walking
+  const hem=pose==='walk'?Math.round(Math.cos(tt)*1):0,sk=pose==='kick'||pose==='akick'?4:0;
+  R(16+lean,b,19,16,O);R(17+lean,b+1,17,14,p.shirt);R(16+lean+hem,b+14,19+sk,7,O);R(17+lean+hem,b+15,17+sk,5,p.shirt);R(17+lean+hem,b+19,17+sk,1,p.shirtD);
+  R(18+lean,b+2,2,9,p.shirtL);for(let i=0;i<6;i++)R(22+lean+i,b+1+i,2,1,'#fff8ec');R(17+lean,b+10,17,3,'#161418');R(25+lean,b+13,2,5,'#161418');
+  // sword hilt on back
+  R(10+lean,b-6,3,3,O);R(11+lean,b-5,1,1,'#e0b030');for(let i=0;i<7;i++)R(12+lean+i,b-3+i,2,2,'#6a3a1a')}
+ else{R(17+lean,b,17,16,O);R(18+lean,b+1,15,14,'#fff4e6');R(18+lean,b+12,15,3,'#e8dccb');// tank
+  R(18+lean,b+1,5,14,p.shirt);R(28+lean,b+1,5,14,p.shirt);const fl=['#ffd23f','#3ad0b0','#7a5cf0','#ff8a2e'];[[19,3],[21,8],[19,12],[29,4],[31,9],[29,13]].forEach(([u,v],i)=>R(u+lean,b+v,2,2,fl[i%4]));
+  R(23+lean,b+1,1,6,'#e0b030');R(24+lean,b+6,4,1,'#e0b030');R(28+lean,b+1,1,6,'#e0b030')}
+ // arms (counter-swing on walk)
+ const sl=k==='taoist'?p.shirt:p.shirt,A=(x0,y0,w,h)=>{R(x0-1,y0-1,w+2,h+2,O);R(x0,y0,w,h,sl)},Pw=(x0,y0)=>{R(x0-1,y0-1,5,5,O);R(x0,y0,3,3,WH)};
+ const TAL=(x0,y0)=>{R(x0-1,y0-1,6,10,O);R(x0,y0,4,8,'#ffe060');R(x0+1,y0+1,2,1,'#d8202a');R(x0+2,y0+2,1,3,'#d8202a');R(x0+1,y0+5,2,1,'#d8202a')};
+ if(pose==='punch'){A(32+lean,b+3,13,4);R(45+lean,b+1,6,8,O);R(46+lean,b+2,4,6,WH);A(14+lean,b+3,3,7);Pw(14+lean,b+10)}
+ else if(pose==='jump'||pose==='akick'){A(33+lean,b-3,4,7);Pw(34+lean,b-6);A(14+lean,b+1,3,7);Pw(13+lean,b+7)}
+ else if(pose==='hurt'){A(12+lean,b+2,4,6);Pw(10+lean,b);A(33+lean,b+2,3,6);Pw(34+lean,b+8)}
+ else if(pose==='kick'){A(12+lean,b+1,4,5);Pw(10+lean,b);A(32+lean,b+3,5,4);Pw(37+lean,b+3)}
+ else if(pose==='sp'){A(32+lean,b+4,8,4);Pw(40+lean,b+4);A(14+lean,b+2,3,7);Pw(13+lean,b+9);if(k==='taoist')TAL(41+lean,b-6)}
+ else{const s2=pose==='walk'?Math.round(Math.cos(tt)*2):0;A(33+lean+s2,b+2,3,7);Pw(33+lean+s2,b+9);A(14+lean-s2,b+2,3,7);Pw(13+lean-s2,b+9);if(k==='taoist'&&pose!=='walk')TAL(10+lean-s2,b+4)}
+ // headgear / hair (drawn over head)
+ if(k==='gangster'){const sw=pose==='walk'?(T%3===0?1:0):pose==='hurt'?-1:0,H=p.hair;
+  R(hx-1,hy+3,28,6,O);R(hx,hy+4,26,4,H);R(hx+4,hy+4,8,1,p.hairL);R(hx+2,hy+8,4,3,H);R(hx+20,hy+8,4,3,H);R(hx+9,hy+8,3,2,H);
+  R(hx-3,hy+6,5,16+sw,O);R(hx-2,hy+7,3,14+sw,H);R(hx+24,hy+6,5,16-sw,O);R(hx+25,hy+7,3,14-sw,H);R(hx-2,hy+10,1,8,p.hairL)}
+ else{R(hx+5,hy-4,16,8,O);R(hx+6,hy-3,14,6,p.hair);R(hx+6,hy-3,14,1,p.hairL);R(hx+11,hy-1,4,2,'#ffcc4d');R(hx+4,hy+3,18,2,O)}}
+const _csHERO=cachedSprite;cachedSprite=function(a,pose,expr,blink){if(a!==P||typeof PCHAR==='undefined'||!HPAL[PCHAR])return _csHERO(a,pose,expr,blink);
+ if(P.ki!=='none'&&!a.dead&&pose!=='hurt'&&a.at<=0)pose='sp';const ph=frame+a.id;
+ const key='H'+PCHAR+pose+expr+(blink?1:0)+(pose==='walk'?(ph/4|0)%6:'')+(pose==='idle'||pose==='sp'?(Math.sin(ph*.08)>.3?1:0):'')+'t'+Math.round(Math.sin(ph*.12)*2);let c=SCACHE.get(key);
+ if(!c){heroSprite(a.sg,PCHAR,pose,ph,expr,blink);c=mkCan(56,60);c.getContext('2d').drawImage(a.spr,0,0);if(SCACHE.size<600)SCACHE.set(key,c)}
+ a.sg.clearRect(0,0,56,60);a.sg.drawImage(c,0,0);return lightOutline(a.spr)};
+charFrame=function(){return null};// retire the static-picture path (assets kept for the select screen)
+
 requestAnimationFrame(loop);
 </script></body></html>
